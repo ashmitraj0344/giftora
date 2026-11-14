@@ -51,12 +51,17 @@ export async function POST(req) {
                 giftPackaging: Boolean(item.giftPackaging),
                 totalItemPrice: itemTotal,
                 variant: item.variant,
-                customizationDetails: customDoc ? {
+                customizationDetails: item.customization ? {
+                    uploadedImagesCount: item.customization.uploadedImagesCount || (item.customization.previewImage ? 1 : 0),
+                    customTexts: item.customization.customTexts || [],
+                    previewImage: item.customization.previewImage,
+                    designConfig: item.customization.designConfig,
+                } : (customDoc ? {
                     uploadedImagesCount: customDoc.uploadedImages?.length || 0,
                     customTexts: customDoc.customTexts?.map((t) => t.text) || [],
                     previewImage: customDoc.previewImage,
                     designConfig: customDoc.designConfiguration,
-                } : undefined,
+                } : undefined),
             });
         }
         // Server-side Coupon Verification
@@ -88,7 +93,11 @@ export async function POST(req) {
             discountAmount,
         });
         const orderNumber = `GFT-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
-        // Create server-side Razorpay order
+        const upiId = 'er2ashmitraj26@ybl';
+        const upiUrl = `upi://pay?pa=${upiId}&pn=Giftora%20Store&am=${totalAmount}&tn=${encodeURIComponent(orderNumber)}&cu=INR`;
+        const upiQrImage = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
+
+        // Create server-side Razorpay order (fallback / secondary)
         const razorpayOrder = await createRazorpayOrder({
             amountInRupees: totalAmount,
             receipt: orderNumber,
@@ -112,13 +121,17 @@ export async function POST(req) {
                 totalAmount,
                 orderStatus: 'Payment Processing',
                 paymentStatus: 'Pending',
-                paymentMethod: 'Razorpay',
+                paymentMethod: 'UPI (YouPI-PG)',
+                upiDetails: {
+                    upiId,
+                    utrNumber: '',
+                },
                 razorpayOrderId: razorpayOrder.id,
                 statusHistory: [
                     {
                         status: 'Pending',
                         timestamp: new Date(),
-                        note: 'Order initiated, awaiting payment verification.',
+                        note: 'Order initiated with UPI (YouPI-PG), awaiting payment verification.',
                     },
                 ],
                 estimatedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days delivery
@@ -130,7 +143,11 @@ export async function POST(req) {
             orderId: newOrder ? newOrder._id.toString() : orderNumber,
             razorpayOrderId: razorpayOrder.id,
             amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency,
+            totalAmount,
+            currency: 'INR',
+            upiId,
+            upiUrl,
+            upiQrImage,
             keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_giftora_demo_key',
             mockMode: razorpayOrder.mockMode,
             summary: {

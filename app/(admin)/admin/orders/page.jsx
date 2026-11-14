@@ -8,6 +8,7 @@ const ALL_STATUSES = [
     'Confirmed',
     'Design Approved',
     'Processing',
+    'Dispatched',
     'Shipped',
     'Out for Delivery',
     'Delivered',
@@ -25,6 +26,7 @@ export default function AdminOrdersPage() {
     const [saving, setSaving] = useState(false);
     const fetchOrders = async () => {
         setLoading(true);
+        let list = [];
         try {
             const q = new URLSearchParams();
             if (selectedStatus !== 'all')
@@ -33,14 +35,34 @@ export default function AdminOrdersPage() {
                 q.set('search', search);
             const res = await fetch(`/api/admin/orders?${q.toString()}`);
             const data = await res.json();
-            if (data.orders && data.orders.length > 0) {
-                setOrders(data.orders);
-                return;
+            if (data.orders && Array.isArray(data.orders)) {
+                list = [...data.orders];
             }
         }
         catch (e) {
             // ignore
         }
+
+        // Also merge any local placed orders from checkout
+        try {
+            const local = JSON.parse(localStorage.getItem('giftora_my_orders') || '[]');
+            if (Array.isArray(local) && local.length > 0) {
+                const seen = new Set(list.map(o => o.orderNumber));
+                for (const o of local) {
+                    if (!seen.has(o.orderNumber)) {
+                        list.push(o);
+                        seen.add(o.orderNumber);
+                    }
+                }
+            }
+        } catch(e) {}
+
+        if (list.length > 0) {
+            setOrders(list);
+            setLoading(false);
+            return;
+        }
+
         // Default mock data for admin inspection
         setOrders([
             {
@@ -150,19 +172,26 @@ export default function AdminOrdersPage() {
                     note: `Status updated by Admin to ${newStatus}`,
                 }),
             });
-            // Update in local state
-            setOrders((prev) => prev.map((o) => o._id === editingOrder._id
-                ? { ...o, orderStatus: newStatus, trackingCarrier: carrier, trackingNumber: trackingNo }
-                : o));
-            setEditingOrder(null);
-        }
-        catch (e) {
-            alert('Updated status in local mode');
-            setEditingOrder(null);
-        }
-        finally {
-            setSaving(false);
-        }
+        } catch(e) {}
+
+        // Also sync to localStorage so customer view updates in real time
+        try {
+            const local = JSON.parse(localStorage.getItem('giftora_my_orders') || '[]');
+            const updated = local.map(o => o._id === editingOrder._id || o.orderNumber === editingOrder.orderNumber ? {
+                ...o,
+                orderStatus: newStatus,
+                trackingCarrier: carrier,
+                trackingNumber: trackingNo,
+            } : o);
+            localStorage.setItem('giftora_my_orders', JSON.stringify(updated));
+        } catch(e) {}
+
+        // Update in local state
+        setOrders((prev) => prev.map((o) => o._id === editingOrder._id
+            ? { ...o, orderStatus: newStatus, trackingCarrier: carrier, trackingNumber: trackingNo }
+            : o));
+        setEditingOrder(null);
+        setSaving(false);
     };
     return (<div className="bg-ivory min-h-screen flex">
       <AdminSidebar />

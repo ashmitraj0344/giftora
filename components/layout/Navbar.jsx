@@ -131,30 +131,68 @@ export const Navbar = () => {
               )}
             </Link>
 
-            <div className="relative">
-              <button
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center space-x-1.5 text-charcoal hover:text-burgundy p-1.5 rounded-full hover:bg-beige transition-colors"
-                title="Account"
+            {/* Admin Portal Shortcut if logged in as Admin */}
+            {user?.role === 'admin' && (
+              <Link
+                href="/admin"
+                className="hidden md:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-burgundy hover:bg-burgundy-dark text-gold text-xs font-bold shadow-xs transition-all border border-gold/40"
+                title="Go to Admin Atelier Dashboard"
               >
-                <div className="w-8 h-8 rounded-full bg-beige border border-beige-dark flex items-center justify-center text-burgundy font-serif font-semibold text-xs">
-                  {user ? user.name.charAt(0).toUpperCase() : <UserIcon className="w-4 h-4" />}
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-charcoal-muted hidden sm:block" />
-              </button>
+                <ShieldCheck className="w-3.5 h-3.5 text-gold" />
+                <span>Admin Portal</span>
+              </Link>
+            )}
+
+            {/* User Account / Identity Cross-Check */}
+            <div className="relative">
+              {user ? (
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center space-x-1.5 p-1 sm:px-2.5 sm:py-1 rounded-full bg-beige/60 hover:bg-beige border border-beige-dark hover:border-burgundy transition-all"
+                  title={`Signed in as ${user.name} (${user.role})`}
+                >
+                  <div className="w-7 h-7 rounded-full bg-burgundy text-white flex items-center justify-center font-serif font-bold text-xs shadow-2xs">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="hidden sm:flex flex-col text-left leading-tight">
+                    <span className="text-xs font-bold text-charcoal max-w-[85px] truncate">
+                      {user.name.split(' ')[0]}
+                    </span>
+                    <span className="text-[9px] uppercase font-bold text-gold-dark tracking-wider">
+                      {user.role}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-charcoal-muted hidden sm:block ml-0.5" />
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full border border-beige-dark hover:border-burgundy text-xs font-semibold text-charcoal hover:text-burgundy transition-all bg-white"
+                >
+                  <UserIcon className="w-4 h-4 text-burgundy" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Link>
+              )}
 
               {userDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-56 bg-white border border-beige shadow-premium rounded-xl py-2 z-50 text-sm animate-in fade-in slide-in-from-top-2"
-                  onMouseLeave={() => setUserDropdownOpen(false)}
-                >
+                <>
+                  <div
+                    className="fixed inset-0 z-40 bg-transparent"
+                    onClick={() => setUserDropdownOpen(false)}
+                  />
+                  <div
+                    className="absolute right-0 mt-2 w-64 bg-white border border-beige shadow-premium rounded-2xl py-2 z-50 text-sm animate-in fade-in slide-in-from-top-2"
+                  >
                   {user ? (
                     <>
-                      <div className="px-4 py-2 border-b border-beige">
-                        <p className="font-semibold text-charcoal truncate">{user.name}</p>
+                      <div className="px-4 py-3 border-b border-beige bg-beige-light/40 rounded-t-xl">
+                        <span className="text-[10px] text-charcoal-muted uppercase font-bold tracking-wider">
+                          Signed In As
+                        </span>
+                        <p className="font-bold text-charcoal truncate text-sm mt-0.5">{user.name}</p>
                         <p className="text-xs text-charcoal-muted truncate">{user.email}</p>
-                        <span className="inline-block mt-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gold/15 text-gold-dark">
-                          {user.role}
+                        <span className="inline-block mt-1 text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gold/20 text-gold-dark border border-gold/30">
+                          Role: {user.role}
                         </span>
                       </div>
                       {user.role === 'admin' && (
@@ -216,6 +254,7 @@ export const Navbar = () => {
                     </>
                   )}
                 </div>
+              </>
               )}
             </div>
           </div>

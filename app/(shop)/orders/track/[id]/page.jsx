@@ -37,7 +37,16 @@ export default function OrderTrackingPage() {
         catch (err) {
             // ignore
         }
-        // High quality mock demo order for immediate evaluator testing
+        // Check local storage for recent orders
+        try {
+          const local = JSON.parse(localStorage.getItem('giftora_my_orders') || '[]');
+          const match = local.find(o => o.orderNumber === id || o._id === id);
+          if (match) {
+            setOrder(match);
+            setLoading(false);
+            return;
+          }
+        } catch(e) {}
         const demoOrder = {
             _id: 'mock_order_1',
             orderNumber: id.startsWith('GFT') ? id : `GFT-${id.slice(-6)}`,
@@ -101,9 +110,11 @@ export default function OrderTrackingPage() {
     const getStepStatus = (stepStatus) => {
         if (!order)
             return 'upcoming';
-        const statusOrder = ['Pending', 'Payment Processing', 'Confirmed', 'Design Approved', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
-        const currentIdx = statusOrder.indexOf(order.orderStatus);
-        const stepIdx = statusOrder.indexOf(stepStatus);
+        const statusOrder = ['Pending', 'Payment Processing', 'Confirmed', 'Design Approved', 'Processing', 'Dispatched', 'Shipped', 'Out for Delivery', 'Delivered'];
+        const currentNorm = order.orderStatus === 'Dispatched' ? 'Shipped' : order.orderStatus;
+        const targetNorm = stepStatus === 'Dispatched' ? 'Shipped' : stepStatus;
+        const currentIdx = statusOrder.indexOf(currentNorm);
+        const stepIdx = statusOrder.indexOf(targetNorm);
         if (currentIdx > stepIdx)
             return 'completed';
         if (currentIdx === stepIdx)

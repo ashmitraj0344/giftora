@@ -130,15 +130,10 @@ async function seed() {
     }
 
     // 3. Seed Products
-    console.log(`📦 Checking products collection...`);
-    const productCount = await Product.countDocuments();
-    if (productCount === 0) {
-      console.log(`Inserting ${INITIAL_PRODUCTS.length} curated gift products...`);
-      await Product.insertMany(INITIAL_PRODUCTS);
-      console.log(`✅ Successfully seeded ${INITIAL_PRODUCTS.length} products!`);
-    } else {
-      console.log(`ℹ️ Products collection already has ${productCount} items.`);
-    }
+    console.log(`📦 Updating products collection with authentic e-commerce photography...`);
+    await Product.deleteMany({});
+    await Product.insertMany(INITIAL_PRODUCTS);
+    console.log(`✅ Successfully updated ${INITIAL_PRODUCTS.length} products in MongoDB Atlas!`);
 
     // 4. Seed Coupons
     const couponCount = await Coupon.countDocuments();
