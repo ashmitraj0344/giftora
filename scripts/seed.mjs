@@ -1,7 +1,29 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { INITIAL_PRODUCTS } from '../lib/sample-data.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/giftora';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Read MONGODB_URI from process.env or .env.local
+let MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  try {
+    const envPath = path.resolve(__dirname, '../.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const match = content.match(/MONGODB_URI=["']?([^"'\r\n]+)["']?/);
+      if (match) MONGODB_URI = match[1];
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+MONGODB_URI = MONGODB_URI || 'mongodb://127.0.0.1:27017/giftora';
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -48,22 +70,20 @@ const Product = mongoose.models.Product || mongoose.model('Product', ProductSche
 const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', CouponSchema);
 
 async function seed() {
-  console.log('🌱 Connecting to MongoDB:', MONGODB_URI);
+  console.log('🌱 Connecting to MongoDB Atlas...');
   try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
-    console.log('✅ Connected to MongoDB.');
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+    console.log('✅ Connected successfully to database:', mongoose.connection.name);
 
-    // Seed Admin User
+    // 1. Seed Admin User
     const adminEmail = 'admin@giftora.com';
-    const adminPassword = 'AdminPassword123!';
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
-
+    const adminHash = await bcrypt.hash('Admin@123', 10);
     const existingAdmin = await User.findOne({ email: adminEmail });
     if (!existingAdmin) {
       await User.create({
         name: 'Giftora Admin',
         email: adminEmail,
-        passwordHash,
+        passwordHash: adminHash,
         role: 'admin',
         phone: '+91 98765 43210',
         addresses: [
@@ -77,16 +97,16 @@ async function seed() {
           },
         ],
       });
-      console.log('✅ Created Admin user: admin@giftora.com / AdminPassword123!');
+      console.log('✅ Seeded Admin: admin@giftora.com / Admin@123');
     } else {
       console.log('ℹ️ Admin user already exists.');
     }
 
-    // Seed Demo Customer
+    // 2. Seed Demo Customer
     const customerEmail = 'customer@giftora.com';
     const existingCust = await User.findOne({ email: customerEmail });
     if (!existingCust) {
-      const custHash = await bcrypt.hash('Customer123!', 10);
+      const custHash = await bcrypt.hash('Customer@123', 10);
       await User.create({
         name: 'Aarav Sharma',
         email: customerEmail,
@@ -104,10 +124,57 @@ async function seed() {
           },
         ],
       });
-      console.log('✅ Created Demo Customer: customer@giftora.com / Customer123!');
+      console.log('✅ Seeded Customer: customer@giftora.com / Customer@123');
+    } else {
+      console.log('ℹ️ Customer user already exists.');
     }
 
-    console.log('🎉 Seeding completed successfully!');
+    // 3. Seed Products
+    console.log(`📦 Checking products collection...`);
+    const productCount = await Product.countDocuments();
+    if (productCount === 0) {
+      console.log(`Inserting ${INITIAL_PRODUCTS.length} curated gift products...`);
+      await Product.insertMany(INITIAL_PRODUCTS);
+      console.log(`✅ Successfully seeded ${INITIAL_PRODUCTS.length} products!`);
+    } else {
+      console.log(`ℹ️ Products collection already has ${productCount} items.`);
+    }
+
+    // 4. Seed Coupons
+    const couponCount = await Coupon.countDocuments();
+    if (couponCount === 0) {
+      await Coupon.insertMany([
+        {
+          code: 'GFT10',
+          discountType: 'percentage',
+          discountValue: 10,
+          minOrderValue: 499,
+          maxDiscount: 200,
+          expiryDate: new Date('2026-12-31'),
+          isActive: true,
+        },
+        {
+          code: 'WELCOME50',
+          discountType: 'fixed',
+          discountValue: 50,
+          minOrderValue: 299,
+          expiryDate: new Date('2026-12-31'),
+          isActive: true,
+        },
+        {
+          code: 'FESTIVE20',
+          discountType: 'percentage',
+          discountValue: 20,
+          minOrderValue: 999,
+          maxDiscount: 500,
+          expiryDate: new Date('2026-12-31'),
+          isActive: true,
+        },
+      ]);
+      console.log('✅ Seeded 3 active promo coupons: GFT10, WELCOME50, FESTIVE20');
+    }
+
+    console.log('🎉 MongoDB Atlas Seeding COMPLETED successfully!');
   } catch (error) {
     console.error('❌ Seeding error:', error.message);
   } finally {
