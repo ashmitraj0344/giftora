@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FAF8F3;
+    --foreground: #252323;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+}
+
+/* Custom Scrollbar for smooth luxury feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF8F3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C6A46A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #702C3B;
+}
+
+/* Glass & Card accents */
+.luxury-card {
+  background: #FFFFFF;
+  border: 1px solid #EDE5D8;
+  box-shadow: 0 10px 30px -10px rgba(112, 44, 59, 0.08);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -15px rgba(112, 44, 59, 0.15);
+  border-color: #C6A46A;
+}
