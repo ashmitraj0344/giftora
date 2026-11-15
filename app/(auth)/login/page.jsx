@@ -7,13 +7,11 @@ import { useAuth } from '@/context/AuthContext';
 import {
   Lock,
   Mail,
-  Sparkles,
-  ShieldCheck,
-  UserCheck,
   AlertCircle,
   ArrowRight,
   LogOut,
   CheckCircle2,
+  Shield,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -29,7 +27,7 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    const res = await login(email, password);
+    const res = await login(email.trim(), password);
     setLoading(false);
     if (res.success) {
       if (res.user?.role === 'admin') {
@@ -38,29 +36,7 @@ export default function LoginPage() {
         router.push('/');
       }
     } else {
-      setErrorMsg(res.error || 'Login failed. Please verify your credentials.');
-    }
-  };
-
-  const handleQuickDemoAdmin = async () => {
-    setEmail('admin@giftora.com');
-    setPassword('Admin@123');
-    setLoading(true);
-    const res = await login('admin@giftora.com', 'Admin@123');
-    setLoading(false);
-    if (res.success) {
-      router.push('/admin');
-    }
-  };
-
-  const handleQuickDemoCustomer = async () => {
-    setEmail('customer@giftora.com');
-    setPassword('Customer@123');
-    setLoading(true);
-    const res = await login('customer@giftora.com', 'Customer@123');
-    setLoading(false);
-    if (res.success) {
-      router.push('/');
+      setErrorMsg(res.error || 'Login failed. Please verify your email and password.');
     }
   };
 
@@ -78,7 +54,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* CURRENT IDENTITY CROSS-CHECK (If already logged in) */}
+        {/* Current Identity Cross-Check (If already logged in) */}
         {user && (
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-3 animate-in fade-in">
             <div className="flex items-center space-x-2 text-emerald-900 font-bold text-xs">
@@ -130,45 +106,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* One-Click Demo Accounts for Evaluation */}
-        <div className="p-4 bg-gradient-to-r from-beige-light to-ivory border border-gold/40 rounded-2xl space-y-2.5 text-xs">
-          <div className="flex items-center space-x-1.5 text-burgundy font-bold">
-            <Sparkles className="w-4 h-4 text-gold-dark" />
-            <span>One-Click Role Demonstration:</span>
-          </div>
-          <p className="text-[11px] text-charcoal-muted leading-tight">
-            Click to test different system roles with real database authentication:
-          </p>
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <button
-              type="button"
-              disabled={loading}
-              onClick={handleQuickDemoAdmin}
-              className="p-2.5 bg-burgundy hover:bg-burgundy-dark text-white text-[11px] font-semibold rounded-xl transition-all flex flex-col items-center justify-center space-y-1 shadow-xs"
-            >
-              <div className="flex items-center space-x-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-gold" />
-                <span>Admin Login</span>
-              </div>
-              <span className="text-[9px] text-gold-light font-normal">admin@giftora.com</span>
-            </button>
-
-            <button
-              type="button"
-              disabled={loading}
-              onClick={handleQuickDemoCustomer}
-              className="p-2.5 bg-charcoal hover:bg-charcoal-dark text-white text-[11px] font-semibold rounded-xl transition-all flex flex-col items-center justify-center space-y-1 shadow-xs"
-            >
-              <div className="flex items-center space-x-1">
-                <UserCheck className="w-3.5 h-3.5 text-gold" />
-                <span>Customer Login</span>
-              </div>
-              <span className="text-[9px] text-gray-300 font-normal">customer@giftora.com</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Standard Form */}
+        {/* Standard Secure Authentication Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-charcoal mb-1">Email Address</label>
@@ -211,7 +149,7 @@ export default function LoginPage() {
             className="w-full bg-burgundy hover:bg-burgundy-dark text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
           >
             {loading ? (
-              <span>Authenticating...</span>
+              <span>Verifying Credentials...</span>
             ) : (
               <>
                 <span>Sign In</span>
@@ -220,6 +158,25 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        {/* Informational Academic Note (Passive credentials, no auto-login) */}
+        <div className="p-3 bg-beige-light/40 border border-beige rounded-2xl text-[11px] text-charcoal-muted space-y-1">
+          <div className="flex items-center space-x-1.5 text-charcoal font-semibold">
+            <Shield className="w-3.5 h-3.5 text-gold-dark" />
+            <span>Academic Evaluation Credentials:</span>
+          </div>
+          <p className="text-[10px] text-charcoal-muted leading-relaxed">
+            Enter manually to test role-based access control:
+          </p>
+          <div className="font-mono text-[10px] text-charcoal pt-0.5 space-y-0.5">
+            <div>
+              <span className="text-burgundy font-semibold">Admin:</span> admin@giftora.com / Admin@123
+            </div>
+            <div>
+              <span className="text-burgundy font-semibold">Customer:</span> customer@giftora.com / Customer@123
+            </div>
+          </div>
+        </div>
 
         <div className="text-center text-xs text-charcoal-muted pt-2 border-t border-beige">
           Don&apos;t have an account yet?{' '}

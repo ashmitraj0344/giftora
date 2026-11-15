@@ -26,9 +26,15 @@ export async function POST(req) {
     // 1. YouPI-PG / Direct UPI Payment Verification
     if (paymentMethod === 'upi' || utrNumber) {
       const cleanUTR = (utrNumber || `UPI_${Date.now()}`).trim();
-      const query = mongoose.Types.ObjectId.isValid(orderId)
-        ? { _id: orderId }
-        : { $or: [{ orderNumber: bodyOrderNumber || orderId }, { _id: orderId }] };
+      const orConditions = [];
+      if (bodyOrderNumber) orConditions.push({ orderNumber: bodyOrderNumber });
+      if (orderId) {
+        orConditions.push({ orderNumber: orderId });
+        if (mongoose.Types.ObjectId.isValid(orderId)) {
+          orConditions.push({ _id: orderId });
+        }
+      }
+      const query = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
 
       let order = null;
       if (db) {
