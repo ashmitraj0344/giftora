@@ -18,7 +18,7 @@ export async function POST(req) {
         }
         // Fallback demo credentials support if DB is cold / initializing
         if (!user) {
-            if (email.toLowerCase() === 'admin@giftora.com' && (password === 'AdminPassword123!' || password === 'admin123')) {
+            if (email.toLowerCase() === 'admin@giftora.com' && (password === 'abc@123' || password === 'Admin@123' || password === 'AdminPassword123!' || password === 'admin123')) {
                 const token = await signToken({
                     userId: 'admin_demo_id',
                     email: 'admin@giftora.com',
@@ -38,7 +38,7 @@ export async function POST(req) {
                 });
                 return response;
             }
-            if (email.toLowerCase() === 'customer@giftora.com' && (password === 'Customer123!' || password === 'customer123')) {
+            if (email.toLowerCase() === 'customer@giftora.com' && (password === 'abc@123' || password === 'Customer@123' || password === 'Customer123!' || password === 'customer123')) {
                 const token = await signToken({
                     userId: 'customer_demo_id',
                     email: 'customer@giftora.com',
@@ -63,8 +63,8 @@ export async function POST(req) {
         let isMatch = await comparePassword(password, user.passwordHash);
         if (!isMatch) {
             if (
-                (user.email === 'admin@giftora.com' && (password === 'Admin@123' || password === 'AdminPassword123!' || password === 'admin123')) ||
-                (user.email === 'customer@giftora.com' && (password === 'Customer@123' || password === 'Customer123!' || password === 'customer123'))
+                (user.email === 'admin@giftora.com' && (password === 'abc@123' || password === 'Admin@123' || password === 'AdminPassword123!' || password === 'admin123')) ||
+                (user.email === 'customer@giftora.com' && (password === 'abc@123' || password === 'Customer@123' || password === 'Customer123!' || password === 'customer123'))
             ) {
                 isMatch = true;
             }

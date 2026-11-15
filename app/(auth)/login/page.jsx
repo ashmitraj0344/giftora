@@ -170,10 +170,10 @@ export default function LoginPage() {
           </p>
           <div className="font-mono text-[10px] text-charcoal pt-0.5 space-y-0.5">
             <div>
-              <span className="text-burgundy font-semibold">Admin:</span> admin@giftora.com / Admin@123
+              <span className="text-burgundy font-semibold">Admin:</span> admin@giftora.com / abc@123
             </div>
             <div>
-              <span className="text-burgundy font-semibold">Customer:</span> customer@giftora.com / Customer@123
+              <span className="text-burgundy font-semibold">Customer:</span> customer@giftora.com / abc@123
             </div>
           </div>
         </div>
